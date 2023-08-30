@@ -1,9 +1,9 @@
-import selenium.common.exceptions
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Chrome
 
 from bs4 import BeautifulSoup
-from collections import Counter
 from random import randint
 from time import sleep
 
@@ -15,7 +15,7 @@ class Scraper:
         self.competences = []
         self.session = self._prepare_session()
 
-    def _prepare_session(self) -> selenium.webdriver:
+    def _prepare_session(self) -> WebDriver:
         """
         Login in the account of Linkedin
         :return: Session of Selenium Webdriver
@@ -69,12 +69,15 @@ class Scraper:
         """
         self.session.get(url_job)
         sleep(randint(6, 12))
-        self.session.find_element(By.CSS_SELECTOR, 'body > div.application-outlet > div.authentication-outlet > div > div.job-view-layout.jobs-details > div.grid > div > div:nth-child(1) > div > div > div.p5 > div.mt5.mb2 > ul > li:nth-child(4) > button').click()
-        sleep(randint(6, 12))
+        try:
+            self.session.find_element(By.CSS_SELECTOR, 'body > div.application-outlet > div.authentication-outlet > div > div.job-view-layout.jobs-details > div.grid > div > div:nth-child(1) > div > div > div.p5 > div.mt5.mb2 > ul > li:nth-child(4) > button').click()
+        except StaleElementReferenceException:
+            ...
+        else:
+            sleep(randint(6, 12))
+            html = BeautifulSoup(self.session.page_source, 'html.parser')
+            for competencia in html.select('.job-details-skill-match-status-list__unmatched-skill.text-body-small'):
+                self.competences.append(competencia.text.strip().replace('Adicionar', '').replace('\n', ''))
 
-        html = BeautifulSoup(self.session.page_source, 'html.parser')
-        for competencia in html.select('.job-details-skill-match-status-list__unmatched-skill.text-body-small'):
-            self.competences.append(competencia.text.strip().replace('Adicionar', '').replace('\n', ''))
 
-
-__all__ = ['Scraper', 'Counter']
+__all__ = ['Scraper']
