@@ -1,13 +1,13 @@
 from scraper import Scraper
-import selenium.common.exceptions
+from selenium.common.exceptions import NoSuchElementException
 from collections import Counter
 
 if __name__ == '__main__':
     scrapzin = Scraper()
-    for url in scrapzin.get_urls_jobs('delphi', 5):  # Put the type of vacancy and the number of pages that will be analyzed here
+    for url in scrapzin.get_urls_jobs('Python', 12):  # Put the type of vacancy and the number of pages that will be analyzed here
         try:
             scrapzin.get_competences(url)
-        except selenium.common.exceptions.NoSuchElementException:
+        except NoSuchElementException:
             continue
 
     contagem = dict(Counter(scrapzin.competences))
